@@ -1,25 +1,36 @@
 version: '3.8'
 
 services:
-  gpt-sovits:
-    image: breakstring/gpt-sovits:latest   # please change the image name and tag base your environment. If the tag contains the word 'elite', such as "latest-elite", it indicates that the image does not include the necessary models such as GPT-SoVITS, UVR5, Damo ASR, etc. You will need to download them yourself and map them into the container.
-    container_name: gpt-sovits-container
+  customizer:
+    #image: breakstring/gpt-sovits:latest   # please change the image name and tag base your environment. If the tag contains the word 'elite', such as "latest-elite", it indicates that the image does not include the necessary models such as GPT-SoVITS, UVR5, Damo ASR, etc. You will need to download them yourself and map them into the container.
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: gptsovits-webui
+    command: "sh -c 'pip install jupyterlab && jupyter lab --ip=0.0.0.0 --port=8888 --ServerApp.token=cloud52128 --allow-root'"
     environment:
       - is_half=False
       - is_share=False
+      - CUDA_DEVICE_ORDER=PCI_BUS_ID
+      - PYTORCH_NVML_BASED_CUDA_CHECK=1
+      - CUDA_VISIBLE_DEVICES=0,1
     volumes:
       - ./output:/workspace/output
       - ./logs:/workspace/logs
       - ./SoVITS_weights:/workspace/SoVITS_weights
+      - ./GPT_weights:/workspace/GPT_weights
+      - ./mnt:/workspace/mnt
       - ./reference:/workspace/reference
+      - /data/kuangqiuhua/docker:/workspace/lab
     working_dir: /workspace
     ports:
-      - "9880:9880"
-      - "9871:9871"
-      - "9872:9872"
-      - "9873:9873"
-      - "9874:9874"
-    shm_size: 16G
+      - "7030:9880"
+      - "7031:9871"
+      - "7032:9872"
+      - "7033:9873"
+      - "7034:9874"
+      - "7035:8888"
+    shm_size: 32G
     deploy:
       resources:
         reservations:
